@@ -24,8 +24,15 @@ npm run build && npm run preview
 ### Checks
 
 ```bash
-npm run lint && npm run typecheck && npm run format:check
+npm test && npm run lint && npm run typecheck && npm run format:check
 ```
+
+Tests are Vitest, covering `src/lib/events.ts` — the freshness derivation, geometry
+conversion and formatting, which is where all the real logic lives. The freshness
+boundaries are pinned exactly, since they are the app's central claim. Everything else in
+the codebase is either presentational or a thin wrapper over `fetch`.
+
+`npm run test:watch` reruns on change.
 
 ESLint runs flat config with `typescript-eslint`'s **type-aware** rules plus the React Hooks
 and React Refresh plugins; `eslint-config-prettier` sits last so formatting is Prettier's
@@ -100,8 +107,8 @@ window hits that ceiling the app says so rather than quietly showing a partial m
 - **URL-encoded state**, so a particular view can be shared or linked.
 - **Reconcile against the `layers` endpoint**, which I did not explore — it exposes matching
   satellite imagery layers per category and would give events visual context.
-- **Tests.** There are none. The date/freshness derivation in `src/lib/events.ts` is the
-  part with real logic in it and is where I'd start.
+- **Wider test coverage.** `src/lib/events.ts` is covered; the components are not. The
+  timeline's binning and brush arithmetic is the next thing I'd pin down.
 
 ## Structure
 
@@ -109,6 +116,7 @@ window hits that ceiling the app says so rather than quietly showing a partial m
 src/
   api/eonet.ts        API types and the two request shapes (windowed vs. backlog)
   lib/events.ts       Freshness derivation, geometry helpers, formatting
+  lib/events.test.ts  Unit tests for the above
   lib/categories.ts   Category palette
   components/
     MapView.tsx       Leaflet map: points, tracks, polygons
