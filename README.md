@@ -6,7 +6,7 @@ happening is not the one the API makes obvious.**
 
 ## Running it
 
-Requires Node 18+.
+Requires Node 20.19+ or 22.12+.
 
 ```bash
 npm install && npm run dev
@@ -117,6 +117,7 @@ src/
     EventDetail.tsx   Detail panel, magnitude sparkline, observation log
     Timeline.tsx      Stacked histogram + drag-to-brush date filter
     DataNotes.tsx     In-app dataset primer, computed from live data
+    MapLoadingOverlay.tsx  Non-blocking spinner shown while a window is in flight
 ```
 
 Built with Vite, React, TypeScript, Leaflet, TanStack Query and Tailwind. Basemap tiles from

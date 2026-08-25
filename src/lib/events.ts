@@ -7,6 +7,7 @@ import type { EonetEvent, EonetGeometry } from '../api/eonet'
  * so it is what this app filters and colours by.
  */
 export type Freshness = 'active' | 'recent' | 'stale' | 'dormant' | 'closed'
+export type LatLng = [number, number]
 
 export const FRESHNESS_META: Record<
   Freshness,
@@ -48,33 +49,65 @@ export interface DerivedEvent {
   freshness: Freshness
   /** Ordered oldest-first; the track a moving event traced. */
   track: EonetGeometry[]
+  /** Point geometries converted to Leaflet's [lat, lng] shape. */
+  points: LatLng[]
+  /** Polygon rings converted to Leaflet's [lat, lng] shape. */
+  polygons: LatLng[][]
   isTrack: boolean
   peakMagnitude: { value: number; unit: string } | null
 }
 
 const DAY = 86_400_000
 
-export function toLatLng(g: EonetGeometry): [number, number] | null {
-  if (g.type !== 'Point') return null
-  const c = g.coordinates as number[]
-  if (c.length < 2 || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) return null
-  return [c[1], c[0]]
+function coordinateToLatLng(coordinates: unknown): LatLng | null {
+  if (!Array.isArray(coordinates) || coordinates.length < 2) return null
+  const lng: unknown = coordinates[0]
+  const lat: unknown = coordinates[1]
+  if (typeof lat !== 'number' || typeof lng !== 'number') return null
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  return [lat, lng]
 }
 
-export function polygonLatLngs(g: EonetGeometry): [number, number][][] {
+function isLatLng(value: LatLng | null): value is LatLng {
+  return value !== null
+}
+
+function toLatLng(g: EonetGeometry): LatLng | null {
+  if (g.type !== 'Point') return null
+  return coordinateToLatLng(g.coordinates)
+}
+
+function polygonLatLngs(g: EonetGeometry): LatLng[][] {
   if (g.type !== 'Polygon') return []
-  return (g.coordinates as number[][][]).map((ring) =>
-    ring.map((p) => [p[1], p[0]] as [number, number]),
-  )
+
+  const rings = g.coordinates as unknown
+  if (!Array.isArray(rings)) return []
+
+  const validRings: LatLng[][] = []
+  for (const ring of rings) {
+    if (!Array.isArray(ring)) continue
+    const latLngs = ring.map(coordinateToLatLng).filter(isLatLng)
+    if (latLngs.length >= 3) validRings.push(latLngs)
+  }
+  return validRings
 }
 
 export function deriveEvent(raw: EonetEvent, now: number): DerivedEvent | null {
   if (!raw.geometry?.length) return null
 
-  const track = [...raw.geometry].sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
-  const firstObserved = Date.parse(track[0].date)
-  const lastObserved = Date.parse(track[track.length - 1].date)
-  if (!Number.isFinite(lastObserved)) return null
+  const datedGeometry = raw.geometry
+    .map((geometry) => ({ geometry, observedAt: Date.parse(geometry.date) }))
+    .filter(({ observedAt }) => Number.isFinite(observedAt))
+    .sort((a, b) => a.observedAt - b.observedAt)
+
+  if (!datedGeometry.length) return null
+
+  const track = datedGeometry.map(({ geometry }) => geometry)
+  const firstObserved = datedGeometry[0].observedAt
+  const lastObserved = datedGeometry[datedGeometry.length - 1].observedAt
+  const points = track.map(toLatLng).filter(isLatLng)
+  const polygons = track.flatMap(polygonLatLngs)
+  if (!points.length && !polygons.length) return null
 
   const ageDays = Math.max(0, Math.floor((now - lastObserved) / DAY))
 
@@ -89,7 +122,11 @@ export function deriveEvent(raw: EonetEvent, now: number): DerivedEvent | null {
   // the unit attached rather than reducing everything to a bare number.
   let peakMagnitude: DerivedEvent['peakMagnitude'] = null
   for (const g of track) {
-    if (typeof g.magnitudeValue === 'number' && g.magnitudeUnit) {
+    if (
+      typeof g.magnitudeValue === 'number' &&
+      Number.isFinite(g.magnitudeValue) &&
+      g.magnitudeUnit
+    ) {
       if (!peakMagnitude || g.magnitudeValue > peakMagnitude.value) {
         peakMagnitude = { value: g.magnitudeValue, unit: g.magnitudeUnit }
       }
@@ -108,6 +145,8 @@ export function deriveEvent(raw: EonetEvent, now: number): DerivedEvent | null {
     ageDays,
     freshness,
     track,
+    points,
+    polygons,
     isTrack: track.length > 1,
     peakMagnitude,
   }

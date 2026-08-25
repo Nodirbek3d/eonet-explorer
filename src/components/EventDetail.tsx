@@ -15,25 +15,30 @@ function MagnitudeSparkline({ event }: { event: DerivedEvent }) {
       d: Date.parse(g.date),
       u: g.magnitudeUnit,
     }))
-    .filter((p) => typeof p.v === 'number') as {
-    i: number
-    v: number
-    d: number
-    u: string
-  }[]
+    .filter(
+      (p): p is { i: number; v: number; d: number; u: string } =>
+        typeof p.v === 'number' &&
+        Number.isFinite(p.v) &&
+        Number.isFinite(p.d) &&
+        typeof p.u === 'string' &&
+        p.u.length > 0,
+    )
 
   if (pts.length < 2) return null
 
   const unit = pts[0].u
-  const max = Math.max(...pts.map((p) => p.v))
-  const min = Math.min(...pts.map((p) => p.v))
+  const comparablePts = pts.filter((p) => p.u === unit)
+  if (comparablePts.length < 2) return null
+
+  const max = Math.max(...comparablePts.map((p) => p.v))
+  const min = Math.min(...comparablePts.map((p) => p.v))
   const span = max - min || 1
-  const t0 = pts[0].d
-  const tSpan = pts[pts.length - 1].d - t0 || 1
+  const t0 = comparablePts[0].d
+  const tSpan = comparablePts[comparablePts.length - 1].d - t0 || 1
   const W = 300
   const H = 56
 
-  const path = pts
+  const path = comparablePts
     .map((p, i) => {
       const x = ((p.d - t0) / tSpan) * W
       const y = H - ((p.v - min) / span) * H

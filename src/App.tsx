@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchEvents, MAX_LIMIT } from './api/eonet'
 import type { Window } from './api/eonet'
@@ -9,6 +9,7 @@ import FilterPanel from './components/FilterPanel'
 import EventList from './components/EventList'
 import EventDetail from './components/EventDetail'
 import Timeline from './components/Timeline'
+import MapLoadingOverlay from './components/MapLoadingOverlay'
 import type { TimeRange } from './components/Timeline'
 import DataNotes from './components/DataNotes'
 
@@ -23,6 +24,7 @@ const DEFAULT_WINDOW = 30
 const DEFAULT_FRESHNESS: Freshness[] = ['active', 'recent', 'stale', 'closed']
 
 export default function App() {
+  const [initialTime] = useState(() => Date.now())
   const [windowDays, setWindowDays] = useState<Window>(DEFAULT_WINDOW)
   const [freshness, setFreshness] = useState<Set<Freshness>>(new Set(DEFAULT_FRESHNESS))
   const [categories, setCategories] = useState<Set<string>>(new Set())
@@ -30,21 +32,24 @@ export default function App() {
   const [range, setRange] = useState<TimeRange | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
+  const deferredSearch = useDeferredValue(search)
 
-  const { data, dataUpdatedAt, isLoading, isError, error } = useQuery({
+  const { data, dataUpdatedAt, isLoading, isFetching, isError, error } = useQuery({
     queryKey: ['events', windowDays],
-    queryFn: () => fetchEvents(windowDays),
+    queryFn: ({ signal }) => fetchEvents(windowDays, signal),
   })
+
+  const referenceTime = dataUpdatedAt || initialTime
 
   // Freshness is measured against the moment the data was fetched, not the moment a
   // component happened to re-render. That keeps the derivation pure and stable, and it is
   // the more honest reference point: "3 days old" should mean 3 days old as of this data.
   const all = useMemo(() => {
     return (data ?? [])
-      .map((e) => deriveEvent(e, dataUpdatedAt))
+      .map((e) => deriveEvent(e, referenceTime))
       .filter((e): e is DerivedEvent => e !== null)
       .sort((a, b) => b.lastObserved - a.lastObserved)
-  }, [data, dataUpdatedAt])
+  }, [data, referenceTime])
 
   const truncated = (data?.length ?? 0) >= MAX_LIMIT
 
@@ -71,14 +76,14 @@ export default function App() {
 
   /** Everything except the time brush — this feeds the histogram. */
   const preTimeFiltered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = deferredSearch.trim().toLowerCase()
     return all.filter(
       (e) =>
         freshness.has(e.freshness) &&
         (categories.size === 0 || categories.has(e.categoryId)) &&
         (q === '' || e.title.toLowerCase().includes(q)),
     )
-  }, [all, freshness, categories, search])
+  }, [all, freshness, categories, deferredSearch])
 
   const filtered = useMemo(() => {
     if (!range) return preTimeFiltered
@@ -94,11 +99,11 @@ export default function App() {
 
   // The backlog has no date bound, so the histogram spans whatever came back.
   const [spanStart, spanEnd] = useMemo(() => {
-    const now = dataUpdatedAt
+    const now = referenceTime
     if (windowDays !== 'backlog') return [now - windowDays * 86_400_000, now]
     if (!all.length) return [now - 86_400_000, now]
     return [Math.min(...all.map((e) => e.lastObserved)), now]
-  }, [windowDays, all, dataUpdatedAt])
+  }, [windowDays, all, referenceTime])
 
   function toggle<T>(set: Set<T>, v: T): Set<T> {
     const next = new Set(set)
@@ -171,6 +176,9 @@ export default function App() {
             onWindowChange={(d) => {
               setWindowDays(d)
               setRange(null)
+              // A window change swaps the whole dataset, so the old selection is not
+              // meaningfully "the same event" any more.
+              setSelectedId(null)
               // The backlog exists to show the dormant pile, so surface it on arrival
               // rather than leaving the user to guess why the map looks empty.
               setFreshness(
@@ -178,6 +186,9 @@ export default function App() {
               )
             }}
             freshness={freshness}
+            // Selection is derived from the filtered set, so it already clears itself
+            // exactly when the selected event drops out of view. Clearing it here too
+            // would drop the panel even when the event is still on screen.
             onFreshnessToggle={(f) => setFreshness((s) => toggle(s, f))}
             freshnessCounts={freshnessCounts}
             categories={categories}
@@ -214,6 +225,15 @@ export default function App() {
             selected={selected}
             onSelect={(e) => setSelectedId(e?.id ?? null)}
           />
+          {isFetching && (
+            <MapLoadingOverlay
+              label={
+                windowDays === 'backlog'
+                  ? 'Every open event — this request is a large one'
+                  : `Last ${windowDays} days`
+              }
+            />
+          )}
         </main>
 
         {selected && (

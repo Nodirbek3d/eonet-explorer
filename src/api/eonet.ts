@@ -30,14 +30,10 @@ export interface EonetEvent {
   geometry: EonetGeometry[]
 }
 
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`)
+async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { signal })
   if (!res.ok) throw new Error(`EONET ${res.status} ${res.statusText}`)
   return res.json() as Promise<T>
-}
-
-export function fetchCategories() {
-  return get<{ categories: EonetCategory[] }>('/categories').then((d) => d.categories)
 }
 
 /** A rolling window in days, or the API's own unfiltered default. */
@@ -56,10 +52,10 @@ export type Window = number | 'backlog'
  * observed in over a year. The app exposes it so that failure mode is visible rather
  * than theoretical.
  */
-export function fetchEvents(window: Window) {
+export function fetchEvents(window: Window, signal?: AbortSignal) {
   const query =
     window === 'backlog'
       ? `status=open&limit=${MAX_LIMIT}`
       : `status=all&limit=${MAX_LIMIT}&days=${window}`
-  return get<{ events: EonetEvent[] }>(`/events?${query}`).then((d) => d.events)
+  return get<{ events: EonetEvent[] }>(`/events?${query}`, signal).then((d) => d.events)
 }

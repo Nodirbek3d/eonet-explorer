@@ -8,7 +8,6 @@ import {
   useMap,
 } from 'react-leaflet'
 import type { DerivedEvent } from '../lib/events'
-import { polygonLatLngs, toLatLng } from '../lib/events'
 import { categoryColor } from '../lib/categories'
 
 interface Props {
@@ -29,7 +28,7 @@ function FlyToSelected({ selected }: { selected: DerivedEvent | null }) {
   const map = useMap()
   useEffect(() => {
     if (!selected) return
-    const pts = selected.track.map(toLatLng).filter(Boolean) as [number, number][]
+    const pts = selected.points.length ? selected.points : selected.polygons.flat()
     if (!pts.length) return
     if (pts.length === 1) {
       map.flyTo(pts[0], Math.max(map.getZoom(), 5), { duration: 0.6 })
@@ -69,8 +68,8 @@ export default function MapView({ events, selected, onSelect }: Props) {
         const color = categoryColor(e.categoryId)
         const isSel = selected?.id === e.id
         const opacity = isSel ? 1 : opacityFor(e.ageDays)
-        const points = e.track.map(toLatLng).filter(Boolean) as [number, number][]
-        const polygons = e.track.flatMap(polygonLatLngs)
+        const points = e.points
+        const polygons = e.polygons
         const last = points[points.length - 1]
 
         return (
