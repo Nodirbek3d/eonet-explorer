@@ -128,12 +128,12 @@ export default function App() {
           <h1 className="text-base font-semibold tracking-tight text-slate-100">
             EONET Explorer
           </h1>
-          <span className="hidden text-[13px] text-slate-500 lg:inline">
+          <span className="hidden text-sm text-slate-500 lg:inline">
             NASA natural event feed, ranked by what was actually observed most recently
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-slate-500">
+          <span className="font-mono text-sm text-slate-500">
             {isLoading ? 'loading…' : `${filtered.length.toLocaleString()} shown`}
             {!isLoading && filtered.length !== all.length && (
               <span className="text-slate-600">
@@ -144,7 +144,7 @@ export default function App() {
           </span>
           <button
             onClick={() => setNotesOpen(true)}
-            className="rounded border border-slate-700 px-2.5 py-1 text-xs text-slate-300 transition hover:border-slate-500 hover:text-white"
+            className="rounded border border-slate-700 px-2.5 py-1 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white"
           >
             Read this first
           </button>

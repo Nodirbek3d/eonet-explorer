@@ -80,12 +80,12 @@ export default function Timeline({
         {range ? (
           <button
             onClick={() => onRangeChange(null)}
-            className="text-xs text-cyan-400 hover:text-cyan-300"
+            className="text-sm text-cyan-400 hover:text-cyan-300"
           >
             clear time filter ✕
           </button>
         ) : (
-          <span className="text-xs text-slate-600">drag to filter by date</span>
+          <span className="text-sm text-slate-600">drag to filter by date</span>
         )}
       </div>
 
@@ -139,7 +139,7 @@ export default function Timeline({
         })}
       </svg>
 
-      <div className="mt-0.5 flex justify-between font-mono text-[11px] text-slate-600">
+      <div className="mt-0.5 flex justify-between font-mono text-sm text-slate-600">
         <span>{new Date(t0).toISOString().slice(0, 10)}</span>
         {!range && <span className="text-slate-700">last observation date →</span>}
         {range && (

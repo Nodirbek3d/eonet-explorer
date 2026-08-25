@@ -74,7 +74,7 @@ export default function FilterPanel(p: Props) {
           </span>
           <button
             onClick={p.onReset}
-            className="text-xs text-slate-500 transition hover:text-slate-300"
+            className="text-sm text-slate-500 transition hover:text-slate-300"
           >
             reset
           </button>
