@@ -29,7 +29,7 @@ function point(
   }
 }
 
-/** `ring` is given as [lon, lat] pairs, matching the wire format. */
+/** `ring` holds raw wire-format pairs; EONET's order varies, so tests state it per case. */
 function polygon(date: string, ring: [number, number][]): EonetGeometry {
   return {
     date,
@@ -158,28 +158,20 @@ describe('deriveEvent: freshness', () => {
 })
 
 describe('deriveEvent: geometry conversion', () => {
-  it('flips wire-format [lon, lat] into Leaflet [lat, lng]', () => {
+  it('flips a point from wire-format [lon, lat] into Leaflet [lat, lng]', () => {
+    // A real IRWIN wildfire in Carson County, Texas.
     const derived = derive(
       event({ geometry: [point(daysAgo(1), { lon: -101.217, lat: 35.4635 })] }),
     )
     expect(derived.points).toEqual([[35.4635, -101.217]])
   })
 
-  it('keeps polygon-only events, which is how sea and lake ice arrives', () => {
-    const ring: [number, number][] = [
-      [0, 0],
-      [1, 0],
-      [1, 1],
-    ]
-    const derived = derive(event({ geometry: [polygon(daysAgo(1), ring)] }))
-    expect(derived.points).toEqual([])
-    expect(derived.polygons).toEqual([
-      [
-        [0, 0],
-        [0, 1],
-        [1, 1],
-      ],
-    ])
+  it('rejects coordinates that fall outside the valid lat/lng range', () => {
+    const derived = deriveEvent(
+      event({ geometry: [point(daysAgo(1), { lon: 400, lat: 500 })] }),
+      NOW,
+    )
+    expect(derived).toBeNull()
   })
 
   it('drops polygon rings left with fewer than three valid vertices', () => {
@@ -187,8 +179,65 @@ describe('deriveEvent: geometry conversion', () => {
       [0, 0],
       [1, 1],
     ]
-    // Only a two-vertex ring, so nothing renderable survives.
     expect(deriveEvent(event({ geometry: [polygon(daysAgo(1), ring)] }), NOW)).toBeNull()
+  })
+})
+
+/**
+ * EONET ships points as [lon, lat] but GDACS flood polygons as [lat, lon]. Reading a
+ * polygon the standard way puts it on the wrong continent, so the order is detected
+ * rather than assumed.
+ */
+describe('deriveEvent: coordinate order detection', () => {
+  it('reads a polygon as [lat, lon] when a second value exceeds 90', () => {
+    // Sinaloa, Mexico. -107 cannot be a latitude, which settles the order.
+    const ring: [number, number][] = [
+      [24.75, -107.39],
+      [24.76, -107.38],
+      [24.77, -107.400001],
+    ]
+    const derived = derive(event({ geometry: [polygon(daysAgo(1), ring)] }))
+    expect(derived.polygons[0][0]).toEqual([24.75, -107.39])
+  })
+
+  it('reads a polygon as [lon, lat] when a first value exceeds 90', () => {
+    const ring: [number, number][] = [
+      [110.69, 30.91],
+      [110.7, 30.92],
+      [110.71, 30.93],
+    ]
+    const derived = derive(event({ geometry: [polygon(daysAgo(1), ring)] }))
+    expect(derived.polygons[0][0]).toEqual([30.91, 110.69])
+  })
+
+  it('falls back to [lat, lon] for polygons where both readings are plausible', () => {
+    // Setif, Algeria: every value is under 90, so nothing proves the order.
+    const ring: [number, number][] = [
+      [36.09, 6.58],
+      [36.1, 6.59],
+      [36.11, 6.6],
+    ]
+    const derived = derive(event({ geometry: [polygon(daysAgo(1), ring)] }))
+    expect(derived.polygons[0][0]).toEqual([36.09, 6.58])
+  })
+
+  it('falls back to [lon, lat] for points where both readings are plausible', () => {
+    const derived = derive(event({ geometry: [point(daysAgo(1), { lon: 14, lat: 27 })] }))
+    expect(derived.points).toEqual([[27, 14]])
+  })
+
+  it('places the Sudan flood in Sudan rather than Libya', () => {
+    // Regression: EONET_22741 spans lat 11.7-20N, lon 22.8-30E in Darfur. Read as
+    // [lon, lat] it lands in the Libyan Fezzan, roughly 1,000km away.
+    const ring: [number, number][] = [
+      [14.55, 24.0],
+      [15.0, 25.0],
+      [16.0, 23.5],
+    ]
+    const [lat, lng] = derive(event({ geometry: [polygon(daysAgo(1), ring)] }))
+      .polygons[0][0]
+    expect(lat).toBeCloseTo(14.55)
+    expect(lng).toBeCloseTo(24.0)
   })
 })
 

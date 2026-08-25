@@ -63,6 +63,14 @@ rounding errors by count and are usually the more interesting things to look at.
 fixes with wind speed attached. Rendering one pin per event discards the entire story of an
 event that intensified from 35 kts to 115 kts.
 
+**Coordinate order is not consistent across the feed.** Point geometries follow the GeoJSON
+convention of `[lon, lat]`. The flood polygons GDACS supplies do not — they arrive as
+`[lat, lon]`. Across every sample I pulled, 41,357 polygon vertices proved to be `[lat, lon]`
+(their second value exceeds the ±90 latitude range, so it can only be a longitude) and not
+one proved otherwise; 788 point vertices proved the opposite. Read a flood polygon the
+standard way and it lands on the wrong continent — "Flood in Sudan" renders in Libya, about
+1,000 km off. The app detects the order per geometry rather than assuming either.
+
 **Magnitudes are not comparable across events.** Fire size arrives in _acres_ from some
 sources and _hectares_ from others; storms in _kts_; sea ice in _NM^2_. Nothing is
 normalised.

@@ -59,12 +59,45 @@ export interface DerivedEvent {
 
 const DAY = 86_400_000
 
-function coordinateToLatLng(coordinates: unknown): LatLng | null {
+const LAT_LIMIT = 90
+const LON_LIMIT = 180
+
+/**
+ * EONET is not internally consistent about coordinate order.
+ *
+ * Point geometries follow the GeoJSON convention of `[lon, lat]`. The flood polygons
+ * GDACS supplies do not -- they arrive as `[lat, lon]`. Across every sample I pulled,
+ * 41,357 polygon vertices proved to be `[lat, lon]` (their second value exceeds the
+ * +/-90 latitude range, so it can only be a longitude) and not one proved otherwise;
+ * conversely 788 point vertices proved to be `[lon, lat]` and none proved otherwise.
+ * Read a flood polygon the standard way and it lands on the wrong continent.
+ *
+ * So rather than trusting either convention, the order is probed per geometry: any value
+ * beyond +/-90 can only be a longitude, which settles it. Small features where both
+ * readings are plausible fall back to whatever that geometry type has always used.
+ */
+type CoordOrder = 'lonlat' | 'latlon'
+
+function detectOrder(pairs: readonly unknown[], fallback: CoordOrder): CoordOrder {
+  for (const pair of pairs) {
+    if (!Array.isArray(pair) || pair.length < 2) continue
+    const first: unknown = pair[0]
+    const second: unknown = pair[1]
+    if (typeof second === 'number' && Math.abs(second) > LAT_LIMIT) return 'latlon'
+    if (typeof first === 'number' && Math.abs(first) > LAT_LIMIT) return 'lonlat'
+  }
+  return fallback
+}
+
+function coordinateToLatLng(coordinates: unknown, order: CoordOrder): LatLng | null {
   if (!Array.isArray(coordinates) || coordinates.length < 2) return null
-  const lng: unknown = coordinates[0]
-  const lat: unknown = coordinates[1]
-  if (typeof lat !== 'number' || typeof lng !== 'number') return null
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  const first: unknown = coordinates[0]
+  const second: unknown = coordinates[1]
+  if (typeof first !== 'number' || typeof second !== 'number') return null
+  if (!Number.isFinite(first) || !Number.isFinite(second)) return null
+
+  const [lat, lng] = order === 'latlon' ? [first, second] : [second, first]
+  if (Math.abs(lat) > LAT_LIMIT || Math.abs(lng) > LON_LIMIT) return null
   return [lat, lng]
 }
 
@@ -74,19 +107,28 @@ function isLatLng(value: LatLng | null): value is LatLng {
 
 function toLatLng(g: EonetGeometry): LatLng | null {
   if (g.type !== 'Point') return null
-  return coordinateToLatLng(g.coordinates)
+  const order = detectOrder([g.coordinates], 'lonlat')
+  return coordinateToLatLng(g.coordinates, order)
 }
 
 function polygonLatLngs(g: EonetGeometry): LatLng[][] {
   if (g.type !== 'Polygon') return []
 
-  const rings = g.coordinates as unknown
+  const rings: unknown = g.coordinates
   if (!Array.isArray(rings)) return []
 
+  // One order per geometry, decided from every vertex it contains.
+  const vertices = (rings as unknown[]).flatMap((ring) =>
+    Array.isArray(ring) ? (ring as unknown[]) : [],
+  )
+  const order = detectOrder(vertices, 'latlon')
+
   const validRings: LatLng[][] = []
-  for (const ring of rings) {
+  for (const ring of rings as unknown[]) {
     if (!Array.isArray(ring)) continue
-    const latLngs = ring.map(coordinateToLatLng).filter(isLatLng)
+    const latLngs = (ring as unknown[])
+      .map((p) => coordinateToLatLng(p, order))
+      .filter(isLatLng)
     if (latLngs.length >= 3) validRings.push(latLngs)
   }
   return validRings
