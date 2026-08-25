@@ -72,20 +72,20 @@ export default function Timeline({
   const selHi = drag ? Math.max(drag.a, drag.b) : null
 
   return (
-    <div className="border-t border-slate-800 bg-[#0d131b] px-4 py-2">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+    <div className="border-t border-slate-800 bg-[#0d131b] px-4 py-3">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="text-xs font-medium tracking-wide text-slate-400 uppercase">
           Events by last observation
         </span>
         {range ? (
           <button
             onClick={() => onRangeChange(null)}
-            className="text-[11px] text-cyan-400 hover:text-cyan-300"
+            className="text-xs text-cyan-400 hover:text-cyan-300"
           >
             clear time filter ✕
           </button>
         ) : (
-          <span className="text-[11px] text-slate-600">drag to filter by date</span>
+          <span className="text-xs text-slate-600">drag to filter by date</span>
         )}
       </div>
 
@@ -93,7 +93,7 @@ export default function Timeline({
         ref={svgRef}
         viewBox={`0 0 ${bins.length} ${H}`}
         preserveAspectRatio="none"
-        className="h-11 w-full cursor-crosshair touch-none select-none"
+        className="h-28 w-full cursor-crosshair touch-none select-none"
         onPointerDown={(e) => {
           const i = xToBin(e.clientX)
           setDrag({ a: i, b: i })
@@ -139,7 +139,7 @@ export default function Timeline({
         })}
       </svg>
 
-      <div className="mt-0.5 flex justify-between font-mono text-[10px] text-slate-600">
+      <div className="mt-0.5 flex justify-between font-mono text-[11px] text-slate-600">
         <span>{new Date(t0).toISOString().slice(0, 10)}</span>
         {!range && <span className="text-slate-700">last observation date →</span>}
         {range && (

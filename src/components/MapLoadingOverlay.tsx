@@ -14,8 +14,8 @@ export default function MapLoadingOverlay({ label }: { label: string }) {
       <div className="flex items-center gap-3 rounded-lg border border-slate-700 bg-[#0d131b]/95 px-4 py-3 shadow-xl shadow-black/40">
         <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-slate-700 border-t-cyan-400" />
         <div>
-          <div className="text-xs font-medium text-slate-200">Loading events…</div>
-          <div className="text-[11px] text-slate-500">{label}</div>
+          <div className="text-[13px] font-medium text-slate-200">Loading events…</div>
+          <div className="text-xs text-slate-500">{label}</div>
         </div>
       </div>
     </div>

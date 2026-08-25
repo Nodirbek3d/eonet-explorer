@@ -51,10 +51,10 @@ function MagnitudeSparkline({ event }: { event: DerivedEvent }) {
   return (
     <div className="mt-4">
       <div className="mb-1.5 flex items-baseline justify-between">
-        <span className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+        <span className="text-xs font-medium tracking-wide text-slate-400 uppercase">
           Magnitude over time
         </span>
-        <span className="font-mono text-[11px] text-slate-500">
+        <span className="font-mono text-xs text-slate-500">
           {min === max ? formatMagnitude(max, unit) : `${min}–${max} ${unit}`}
         </span>
       </div>
@@ -94,10 +94,10 @@ export default function EventDetail({
           style={{ background: color }}
         />
         <div className="min-w-0 flex-1">
-          <h2 className="text-[15px] leading-snug font-semibold text-slate-100">
+          <h2 className="text-base leading-snug font-semibold text-slate-100">
             {event.title}
           </h2>
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-slate-400">
             <span style={{ color }}>{event.categoryTitle}</span>
             <span className="text-slate-700">·</span>
             <span style={{ color: meta.color }}>{meta.label}</span>
@@ -115,11 +115,11 @@ export default function EventDetail({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-[13px]">
           <div>
             <dt className="text-slate-500">Last observed</dt>
             <dd className="mt-0.5 text-slate-200">{formatAge(event.ageDays)}</dd>
-            <dd className="font-mono text-[10px] text-slate-500">
+            <dd className="font-mono text-[11px] text-slate-500">
               {formatDate(event.lastObserved)}
             </dd>
           </div>
@@ -150,7 +150,7 @@ export default function EventDetail({
 
         {/* The single most misleading field in the dataset, called out where it matters. */}
         {event.freshness === 'dormant' && (
-          <p className="mt-4 rounded border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-xs leading-relaxed text-orange-200/90">
+          <p className="mt-4 rounded border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-[13px] leading-relaxed text-orange-200/90">
             EONET still lists this event as <strong>open</strong>, but nothing has been
             reported for {formatAge(event.ageDays)}. Open means "no source filed a closing
             report" — not "still burning".
@@ -160,17 +160,17 @@ export default function EventDetail({
         <MagnitudeSparkline event={event} />
 
         {event.raw.description && (
-          <p className="mt-4 text-xs leading-relaxed text-slate-300">
+          <p className="mt-4 text-[13px] leading-relaxed text-slate-300">
             {event.raw.description}
           </p>
         )}
 
         <div className="mt-4">
-          <div className="mb-1.5 text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+          <div className="mb-1.5 text-xs font-medium tracking-wide text-slate-400 uppercase">
             Sources
           </div>
           {event.raw.sources.length === 0 && (
-            <p className="text-xs text-slate-500">None listed.</p>
+            <p className="text-[13px] text-slate-500">None listed.</p>
           )}
           <ul className="space-y-1">
             {event.raw.sources.map((s) => (
@@ -179,7 +179,7 @@ export default function EventDetail({
                   href={s.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-mono text-xs text-cyan-400 underline-offset-2 hover:underline"
+                  className="font-mono text-[13px] text-cyan-400 underline-offset-2 hover:underline"
                 >
                   {s.id} ↗
                 </a>
@@ -190,17 +190,17 @@ export default function EventDetail({
             href={event.raw.link}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-block font-mono text-[11px] text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline"
+            className="mt-2 inline-block font-mono text-xs text-slate-500 underline-offset-2 hover:text-slate-300 hover:underline"
           >
             raw EONET JSON ↗
           </a>
         </div>
 
         <div className="mt-4">
-          <div className="mb-1.5 text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+          <div className="mb-1.5 text-xs font-medium tracking-wide text-slate-400 uppercase">
             Observation log
           </div>
-          <ul className="max-h-56 space-y-0.5 overflow-y-auto font-mono text-[11px]">
+          <ul className="max-h-56 space-y-0.5 overflow-y-auto font-mono text-xs">
             {[...event.track].reverse().map((g, i) => (
               <li key={i} className="flex justify-between gap-2 text-slate-400">
                 <span>{formatDate(Date.parse(g.date))}</span>

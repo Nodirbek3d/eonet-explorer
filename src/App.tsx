@@ -125,15 +125,15 @@ export default function App() {
     <div className="relative flex h-full flex-col">
       <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-800 bg-[#0d131b] px-4 py-2.5">
         <div className="flex items-baseline gap-3">
-          <h1 className="text-sm font-semibold tracking-tight text-slate-100">
+          <h1 className="text-base font-semibold tracking-tight text-slate-100">
             EONET Explorer
           </h1>
-          <span className="hidden text-xs text-slate-500 lg:inline">
+          <span className="hidden text-[13px] text-slate-500 lg:inline">
             NASA natural event feed, ranked by what was actually observed most recently
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[11px] text-slate-500">
+          <span className="font-mono text-xs text-slate-500">
             {isLoading ? 'loading…' : `${filtered.length.toLocaleString()} shown`}
             {!isLoading && filtered.length !== all.length && (
               <span className="text-slate-600">
@@ -144,7 +144,7 @@ export default function App() {
           </span>
           <button
             onClick={() => setNotesOpen(true)}
-            className="rounded border border-slate-700 px-2.5 py-1 text-[11px] text-slate-300 transition hover:border-slate-500 hover:text-white"
+            className="rounded border border-slate-700 px-2.5 py-1 text-xs text-slate-300 transition hover:border-slate-500 hover:text-white"
           >
             Read this first
           </button>
@@ -152,7 +152,7 @@ export default function App() {
       </header>
 
       {windowDays === 'backlog' && (
-        <div className="shrink-0 border-b border-orange-500/20 bg-orange-500/10 px-4 py-1.5 text-[11px] text-orange-200/90">
+        <div className="shrink-0 border-b border-orange-500/20 bg-orange-500/10 px-4 py-1.5 text-xs text-orange-200/90">
           Showing <code>GET /events</code> with no parameters — the API's own default.
           Every event here is flagged <strong>open</strong>, yet most have not been
           observed in over a year. This is the pile a naive integration would render as
@@ -163,7 +163,7 @@ export default function App() {
       )}
 
       {truncated && windowDays !== 'backlog' && (
-        <div className="shrink-0 border-b border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-[11px] text-amber-200/90">
+        <div className="shrink-0 border-b border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-200/90">
           This window returned the API's maximum of {MAX_LIMIT.toLocaleString()} events —
           the oldest events in the range are missing. Try a shorter window.
         </div>
@@ -200,12 +200,12 @@ export default function App() {
           />
           <div className="min-h-0 flex-1 overflow-y-auto">
             {isLoading && (
-              <div className="px-4 py-8 text-center text-xs text-slate-500">
+              <div className="px-4 py-8 text-center text-[13px] text-slate-500">
                 Loading events…
               </div>
             )}
             {isError && (
-              <div className="px-4 py-8 text-center text-xs text-red-400">
+              <div className="px-4 py-8 text-center text-[13px] text-red-400">
                 {error.message}
               </div>
             )}

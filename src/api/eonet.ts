@@ -33,7 +33,7 @@ export interface EonetEvent {
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { signal })
   if (!res.ok) throw new Error(`EONET ${res.status} ${res.statusText}`)
-  return res.json() as Promise<T>
+  return (await res.json()) as Promise<T>
 }
 
 /** A rolling window in days, or the API's own unfiltered default. */

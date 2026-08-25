@@ -28,7 +28,7 @@ export default function DataNotes({
 
   return (
     <div
-      className="absolute inset-0 z-[1000] flex justify-end bg-black/50"
+      className="absolute inset-0 z-1000 flex justify-end bg-black/50"
       onClick={onClose}
     >
       <aside
@@ -40,7 +40,7 @@ export default function DataNotes({
             <h2 className="text-lg font-semibold text-slate-100">
               What you should know about EONET
             </h2>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-[13px] text-slate-500">
               Computed from the {events.length.toLocaleString()} events currently loaded
               {windowDays === 'backlog'
                 ? ' from the API default (all open events, no date bound).'
@@ -142,7 +142,7 @@ export default function DataNotes({
           </section>
 
           {truncated && (
-            <section className="rounded border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-200/90">
+            <section className="rounded border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-[13px] text-amber-200/90">
               This window hit the API's 5,000-event response cap, so the oldest events in
               it are missing. Narrow the time window for a complete picture.
             </section>

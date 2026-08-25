@@ -21,7 +21,7 @@ export default function EventList({ events, selected, onSelect }: Props) {
 
   if (events.length === 0) {
     return (
-      <div className="px-4 py-8 text-center text-xs text-slate-500">
+      <div className="px-4 py-8 text-center text-[13px] text-slate-500">
         No events match these filters.
       </div>
     )
@@ -46,8 +46,10 @@ export default function EventList({ events, selected, onSelect }: Props) {
                 style={{ background: categoryColor(e.categoryId) }}
               />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs text-slate-200">{e.title}</span>
-                <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+                <span className="block truncate text-[13px] text-slate-200">
+                  {e.title}
+                </span>
+                <span className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
                   <span style={{ color: FRESHNESS_META[e.freshness].color }}>
                     {formatAge(e.ageDays)}
                   </span>
@@ -74,7 +76,7 @@ export default function EventList({ events, selected, onSelect }: Props) {
         )
       })}
       {events.length > RENDER_CAP && (
-        <li className="px-4 py-2.5 text-[11px] text-slate-500">
+        <li className="px-4 py-2.5 text-xs text-slate-500">
           Showing {RENDER_CAP} of {events.length.toLocaleString()} matching events. All of
           them are on the map — narrow the filters to bring the rest into this list.
         </li>

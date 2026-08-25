@@ -28,7 +28,7 @@ body {
 .leaflet-control-attribution {
   background: rgba(11, 16, 23, 0.8) !important;
   color: #64748b !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 
 .leaflet-control-attribution a {

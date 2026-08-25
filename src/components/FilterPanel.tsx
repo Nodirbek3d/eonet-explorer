@@ -47,7 +47,7 @@ function Chip({
     <button
       onClick={onClick}
       title={title}
-      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] transition ${
+      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition ${
         active
           ? 'border-slate-600 bg-slate-800 text-slate-100'
           : 'border-slate-800 bg-transparent text-slate-500 hover:border-slate-700 hover:text-slate-300'
@@ -69,12 +69,12 @@ export default function FilterPanel(p: Props) {
     <div className="space-y-3 border-b border-slate-800 px-4 py-3">
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+          <span className="text-xs font-medium tracking-wide text-slate-400 uppercase">
             Time window
           </span>
           <button
             onClick={p.onReset}
-            className="text-[11px] text-slate-500 transition hover:text-slate-300"
+            className="text-xs text-slate-500 transition hover:text-slate-300"
           >
             reset
           </button>
@@ -85,7 +85,7 @@ export default function FilterPanel(p: Props) {
               key={String(w.value)}
               onClick={() => p.onWindowChange(w.value)}
               title={w.title}
-              className={`flex-1 rounded border px-2 py-1 text-xs transition ${
+              className={`flex-1 rounded border px-2 py-1 text-[13px] transition ${
                 p.windowDays === w.value
                   ? 'border-cyan-500/40 bg-cyan-500/15 text-cyan-300'
                   : 'border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
@@ -98,7 +98,7 @@ export default function FilterPanel(p: Props) {
         <button
           onClick={() => p.onWindowChange('backlog')}
           title={WINDOWS[WINDOWS.length - 1].title}
-          className={`mt-1.5 w-full rounded border px-2 py-1 text-xs transition ${
+          className={`mt-1.5 w-full rounded border px-2 py-1 text-[13px] transition ${
             p.windowDays === 'backlog'
               ? 'border-orange-500/40 bg-orange-500/15 text-orange-300'
               : 'border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
@@ -109,7 +109,7 @@ export default function FilterPanel(p: Props) {
       </div>
 
       <div>
-        <div className="mb-1.5 text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+        <div className="mb-1.5 text-xs font-medium tracking-wide text-slate-400 uppercase">
           Freshness
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -131,7 +131,7 @@ export default function FilterPanel(p: Props) {
       </div>
 
       <div>
-        <div className="mb-1.5 text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+        <div className="mb-1.5 text-xs font-medium tracking-wide text-slate-400 uppercase">
           Category
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -153,7 +153,7 @@ export default function FilterPanel(p: Props) {
         value={p.search}
         onChange={(e) => p.onSearchChange(e.target.value)}
         placeholder="Filter by title…"
-        className="w-full rounded border border-slate-800 bg-[#0b1017] px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-600 transition outline-none focus:border-slate-600"
+        className="w-full rounded border border-slate-800 bg-[#0b1017] px-2.5 py-1.5 text-[13px] text-slate-200 placeholder-slate-600 transition outline-none focus:border-slate-600"
       />
     </div>
   )
